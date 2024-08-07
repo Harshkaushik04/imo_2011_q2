@@ -92,29 +92,40 @@ public:
         double m=this->slope;
         double x=this->middle_point[0];
         double y=this->middle_point[1];
-
+        vector<int>* memory_address;
+        double x1;
+        double y1;
         for(int i=0;i<vec.size();i++){
-            vector<int>* memory_address=&vec[i];
-            double x1=(double)vec[i][0];
-            double y1=(double)vec[i][1];
-            if(x1-x!=0){
-                double m1=(y1-y)/(x1-x);
-                if(m1>m){
-                    exception_dict[memory_address]=m1;
+            memory_address=&vec[i];
+            x1=(double)vec[i][0];
+            y1=(double)vec[i][1];
+            if((x1!=x)||(y1!=y)){
+                if(x1-x!=0){
+                    double m1=(y1-y)/(x1-x);
+                    if(m1>m){
+                        exception_dict[memory_address]=m1;
+                    }
+                    else{
+                        normal_dict[memory_address]=m1;
+                    }
                 }
                 else{
-                    normal_dict[memory_address]=m1;
+                    if(m>0){
+                        exception_dict[memory_address]=100000;
+                    }
+                    else if(m<0){
+                        normal_dict[memory_address]=-100000;
+                    }
                 }
             }
-            else{
-                exception_dict[memory_address]=100000;
-            }
         }
-        double max_m=-100000;
+        double max_m=-1000000;
         vector<int> selected_point;
         int selected_index;
+        // cout<<"before_hi:"<<endl;
         if (normal_dict.size()>0){
             for(pair<vector<int>*,double> pair:normal_dict){
+                // cout<<"normal_dict element:("<<(*pair.first)[0]<<" "<<(*pair.first)[1]<<") "<<pair.second<<endl;
                 if(pair.second>max_m){
                     max_m=pair.second;
                     selected_point=*pair.first;
@@ -129,6 +140,7 @@ public:
         //normal_dict size=0
         else{
             for(pair<vector<int>*,double> pair:exception_dict){
+                // cout<<"exception_dict element:("<<(*pair.first)[0]<<" "<<(*pair.first)[1]<<") "<<pair.second<<endl;
                 if(pair.second>max_m){
                     max_m=pair.second;
                     selected_point=*pair.first;
@@ -247,8 +259,6 @@ rotating_line change_line_attributes(rotating_line l,vector<double> middle_point
     return l;
 }
 
-
-
 int main(){
     /* random non collinear points generator 
     make line class
@@ -259,8 +269,8 @@ int main(){
     <find pattern-in case odd, find subpatterns-in case even> function
     */
     //testing random point generator
-    vector<vector<int>> vec=random_points_generator(109,26);
-    // vector<vector<int>> vec={{-6,2},{4,14},{-18,-7},{-10,1},{28,-28}};
+    vector<vector<int>> vec=random_points_generator(203,26);
+    // vector<vector<int>> vec={{0,0},{2,2},{2,-2},{1,0}};
     rotating_line l=find_optimal_line(vec,0);
     for(vector<int>& v:vec){
         for(int& num:v){
@@ -295,12 +305,24 @@ int main(){
         }
     count_map[&vec_to_double[special_index]]=1;
     vector<double> point;
+    double slope;
     bool flag=true;
-    for(int j=0;j<=300;j++){
-        int next_index=l.closest_point_index(vec);
-        // cout<<next_index<<endl;
-        vector<double> middle_point=vec_to_double[next_index];
-        double slope=(middle_point[1]-l.middle_point[1])/(middle_point[0]-l.middle_point[0]);
+    int next_index;
+    vector<double> middle_point;
+    vector<vector<double>> line_path;
+    line_path.push_back(l.middle_point);
+    for(int j=0;j<=100;j++){
+        next_index=l.closest_point_index(vec);
+        // cout<<"new:"<<next_index<<endl;
+        middle_point=vec_to_double[next_index];
+        line_path.push_back(middle_point);
+        // cout<<"hi: "<<l.middle_point[0]<<" "<<l.middle_point[1]<<endl;
+        if(middle_point[0]-l.middle_point[0]!=0){
+            slope=(middle_point[1]-l.middle_point[1])/(middle_point[0]-l.middle_point[0]);
+        }
+        else{
+            slope=100000;
+        }
         l=change_line_attributes(l,middle_point,slope-0.0005,l.angular_velocity);
         // for(double p:l.middle_point){
         //     cout<<p<<" ";
@@ -312,7 +334,7 @@ int main(){
                 index=k;
                 // mem_address=&point;
                 // cout<<"hi"<<endl;
-                // cout<<"hi: "<<l.middle_point[0]<<" "<<l.middle_point[1]<<endl;
+                // cout<<"new_hi: "<<l.middle_point[0]<<" "<<l.middle_point[1]<<" "<<l.slope<<endl;
                 // cout<<"wow: "<<mem_address<<" "<<&point<<endl;
                 break;
             }
@@ -337,5 +359,15 @@ int main(){
     for(pair<vector<double>*,int> p:count_map){
         cout<<"("<<(*p.first)[0]<<" "<<(*p.first)[1]<<"):"<<p.second<<endl;
     }
+    cout<<"line path:"<<endl;
+    int local_count=0;
+    for(vector<double> point:line_path){
+        local_count+=1;
+        // if((point==vec_to_double[special_index])&(local_count!=1)){
+        //     break;
+        // }
+        cout<<"( "<<point[0]<<" "<<point[1]<<")->";
+    }
+    cout<<"end";
     return 0;
 }
