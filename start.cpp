@@ -269,9 +269,10 @@ int main(){
     <find pattern-in case odd, find subpatterns-in case even> function
     */
     //testing random point generator
-    vector<vector<int>> vec=random_points_generator(203,26);
+    vector<vector<int>> vec=random_points_generator(105,29);
     // vector<vector<int>> vec={{0,0},{2,2},{2,-2},{1,0}};
     rotating_line l=find_optimal_line(vec,0);
+    double special_slope=l.slope;
     for(vector<int>& v:vec){
         for(int& num:v){
             cout<<num<<" ";
@@ -309,13 +310,19 @@ int main(){
     bool flag=true;
     int next_index;
     vector<double> middle_point;
+    vector<double> path;
+    path.push_back(l.middle_point[0]);
+    path.push_back(l.middle_point[1]);
+    path.push_back(l.slope);
     vector<vector<double>> line_path;
-    line_path.push_back(l.middle_point);
-    for(int j=0;j<=100;j++){
+    line_path.push_back(path);
+    // line_path.push_back(l.middle_point);
+    for(int j=0;j<=400;j++){
+        path={};
         next_index=l.closest_point_index(vec);
         // cout<<"new:"<<next_index<<endl;
         middle_point=vec_to_double[next_index];
-        line_path.push_back(middle_point);
+        // line_path.push_back(middle_point);
         // cout<<"hi: "<<l.middle_point[0]<<" "<<l.middle_point[1]<<endl;
         if(middle_point[0]-l.middle_point[0]!=0){
             slope=(middle_point[1]-l.middle_point[1])/(middle_point[0]-l.middle_point[0]);
@@ -323,7 +330,11 @@ int main(){
         else{
             slope=100000;
         }
-        l=change_line_attributes(l,middle_point,slope-0.0005,l.angular_velocity);
+        l=change_line_attributes(l,middle_point,slope-0.00005,l.angular_velocity);
+        path.push_back(l.middle_point[0]);
+        path.push_back(l.middle_point[1]);
+        path.push_back(l.slope);
+        line_path.push_back(path);
         // for(double p:l.middle_point){
         //     cout<<p<<" ";
         // }
@@ -361,13 +372,36 @@ int main(){
     }
     cout<<"line path:"<<endl;
     int local_count=0;
+    bool whether_reached=false;
+    vector<double> slopes;
+    bool another_flag=false;
     for(vector<double> point:line_path){
         local_count+=1;
-        // if((point==vec_to_double[special_index])&(local_count!=1)){
-        //     break;
-        // }
-        cout<<"( "<<point[0]<<" "<<point[1]<<")->";
+        if(another_flag==true){
+            break;
+        }
+        if(whether_reached==true){
+            another_flag=true;
+        }
+        if((point[2]-special_slope<0.05)&(point[0]==vec_to_double[special_index][0])&(point[1]==vec_to_double[special_index][1])&(local_count!=1)){
+            whether_reached=true;
+        }
+        if((point[0]==vec_to_double[special_index][0])&(point[1]==vec_to_double[special_index][1])){
+            slopes.push_back(point[2]);
+        }
+        cout<<"( "<<point[0]<<" "<<point[1]<<",slope="<<point[2]<<")->";
     }
-    cout<<"end";
+    cout<<"end"<<endl;
+    if(whether_reached==true){
+        cout<<"cycle detected!"<<endl;
+    }
+
+    else{
+        cout<<"cycle not detected!"<<endl;
+    }  
+    cout<<"slopes of line when they reached the initial point"<<endl;
+    for(double slope:slopes){
+        cout<<slope<<endl;
+    }
     return 0;
 }
